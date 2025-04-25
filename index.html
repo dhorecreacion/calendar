@@ -1,0 +1,70 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Calendario Sala SUM</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+      height: 100%;
+      overflow: hidden;
+    }
+    #fullscreen-btn {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 20px 40px;
+      font-size: 24px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      z-index: 2;
+    }
+    iframe {
+      display: none;
+      width: 100vw;
+      height: 100vh;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+
+  <button id="fullscreen-btn" onclick="goFullScreen()">Ver en pantalla completa</button>
+
+  <iframe id="calendarFrame" src="https://calendar.google.com/calendar/embed?src=dhorecreacion%40gmail.com&ctz=America%2FLima&mode=WEEK"></iframe>
+
+  <script>
+    function goFullScreen() {
+      const elem = document.documentElement;
+      const iframe = document.getElementById("calendarFrame");
+      const btn = document.getElementById("fullscreen-btn");
+
+      // Entrar en pantalla completa
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+      } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) {
+        elem.msRequestFullscreen();
+      }
+
+      // Ocultar botón y mostrar el calendario
+      btn.style.display = "none";
+      iframe.style.display = "block";
+
+      // Refrescar el iframe cada 1 minuto
+      setInterval(() => {
+        iframe.src = iframe.src;
+      }, 60000); // 1 minuto
+    }
+  </script>
+
+</body>
+</html>
