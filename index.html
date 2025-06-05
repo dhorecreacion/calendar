@@ -1,70 +1,264 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Calendario Sala SUM</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Capacitaciones en la Sala SUM</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/a2d9d6a6de.js" crossorigin="anonymous"></script>
   <style>
     html, body {
       margin: 0;
       padding: 0;
-      background-color: #000;
-      height: 100%;
+      height: 100vh;
       overflow: hidden;
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(to bottom right, #f0f2f5, #e6ebf1);
+      color: #1a3e72;
+      display: flex;
+      flex-direction: column;
     }
-    #fullscreen-btn {
-      position: absolute;
-      top: 40%;
+
+    .contenido {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 2rem;
+      overflow-y: auto;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .header h1 {
+      font-size: 1.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .header h1 i {
+      font-size: 1.8rem;
+      color: #1a73e8;
+    }
+
+    .hora-actual {
+      font-size: 1rem;
+      color: #444;
+    }
+
+    .contenedor-eventos {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      width: 100%;
+    }
+
+    .evento-card {
+      background: white;
+      border-radius: 18px;
+      padding: 1.5rem 2rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      animation: fadeInUp 0.4s ease both;
+    }
+
+    .evento-card.destacado {
+      border-left: 5px solid #1a73e8;
+      background: linear-gradient(to right, #dff1ff, #eaf6ff);
+    }
+
+    .evento-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .evento-icono {
+      font-size: 2rem;
+      color: #1a73e8;
+    }
+
+    .evento-detalles {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .evento-hora {
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+
+    .evento-titulo {
+      font-size: 1rem;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .evento-footer {
+      text-align: right;
+      font-size: 0.95rem;
+      color: #444;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .evento-footer i {
+      color: #1a73e8;
+    }
+
+    .mensaje-vacio {
+      text-align: center;
+      font-size: 1.2rem;
+      color: #999;
+      margin-top: 2rem;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    #btnPantallaCompleta {
+      position: fixed;
+      top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      padding: 20px 40px;
-      font-size: 24px;
-      background: #007bff;
+      background: #1a73e8;
       color: white;
       border: none;
-      border-radius: 10px;
+      font-size: 1.2rem;
+      padding: 1rem 2rem;
+      border-radius: 12px;
       cursor: pointer;
-      z-index: 2;
+      z-index: 9999;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      transition: transform 0.3s ease;
     }
-    iframe {
-      display: none;
-      width: 100vw;
-      height: 100vh;
-      border: none;
+
+    #btnPantallaCompleta:hover {
+      transform: translate(-50%, -50%) scale(1.05);
     }
   </style>
 </head>
 <body>
+  <button id="btnPantallaCompleta" style="display:none;">
+    Ver en pantalla completa
+  </button>
 
-  <button id="fullscreen-btn" onclick="goFullScreen()">Ver en pantalla completa</button>
-
-  <iframe id="calendarFrame" src="https://calendar.google.com/calendar/embed?src=dhorecreacion%40gmail.com&ctz=America%2FLima&mode=WEEK"></iframe>
+  <div class="contenido" id="contenido" style="display: none;">
+    <div class="header">
+      <h1><i class="fa-solid fa-calendar-days"></i> Capacitaciones en la Sala SUM</h1>
+      <div class="hora-actual" id="horaActual"></div>
+    </div>
+    <div id="contenedorEventos" class="contenedor-eventos"></div>
+    <div id="mensajeVacio" class="mensaje-vacio" style="display:none;">
+      No hay capacitaciones programadas para este día.
+    </div>
+  </div>
 
   <script>
-    function goFullScreen() {
-      const elem = document.documentElement;
-      const iframe = document.getElementById("calendarFrame");
-      const btn = document.getElementById("fullscreen-btn");
+    const URL_CALENDARIO = 'https://script.google.com/macros/s/AKfycby2sPOBB6DP6aZy6Z6t6Auy4aFBUZxAlzAw1CSXsWnVS0zc67KLNSrLkDKdCdkdlzI/exec';
 
-      // Entrar en pantalla completa
-      if (elem.requestFullscreen) {
-        elem.requestFullscreen();
-      } else if (elem.webkitRequestFullscreen) {
-        elem.webkitRequestFullscreen();
-      } else if (elem.msRequestFullscreen) {
-        elem.msRequestFullscreen();
+    function actualizarHora() {
+      const ahora = new Date();
+      const fecha = ahora.toLocaleDateString('es-PE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      const hora = ahora.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+      document.getElementById('horaActual').textContent = `${fecha} | ${hora}`;
+    }
+
+    function formatoHora(fecha) {
+      return new Date(fecha).toLocaleTimeString('es-PE', {
+        hour: '2-digit', minute: '2-digit'
+      });
+    }
+
+    async function cargarEventos() {
+      const fecha = new Date().toISOString().split("T")[0];
+      const res = await fetch(`${URL_CALENDARIO}?fecha=${fecha}`);
+      const eventos = await res.json();
+
+      const contenedor = document.getElementById('contenedorEventos');
+      const mensaje = document.getElementById('mensajeVacio');
+      contenedor.innerHTML = '';
+      mensaje.style.display = 'none';
+
+      if (!eventos.length) {
+        mensaje.style.display = 'block';
+        return;
       }
 
-      // Ocultar botón y mostrar el calendario
-      btn.style.display = "none";
-      iframe.style.display = "block";
+      const ahora = new Date();
 
-      // Refrescar el iframe cada 1 minuto
-      setInterval(() => {
-        iframe.src = iframe.src;
-      }, 60000); // 1 minuto
+      eventos
+        .sort((a, b) => new Date(a.inicio) - new Date(b.inicio))
+        .forEach(ev => {
+          const inicio = new Date(ev.inicio);
+          const fin = new Date(ev.fin);
+          const esActual = ahora >= inicio && ahora <= fin;
+
+          const card = document.createElement('div');
+          card.className = 'evento-card' + (esActual ? ' destacado' : '');
+
+          card.innerHTML = `
+            <div class="evento-info">
+              <i class="fa-solid fa-calendar-check evento-icono"></i>
+              <div class="evento-detalles">
+                <div class="evento-hora">${formatoHora(inicio)} – ${formatoHora(fin)}</div>
+                <div class="evento-titulo">${ev.titulo}</div>
+              </div>
+            </div>
+            <div class="evento-footer"><i class="fa-solid fa-location-dot"></i> ${ev.lugar || 'SUM'}</div>
+          `;
+
+          contenedor.appendChild(card);
+        });
     }
-  </script>
 
+    // Pantalla completa
+    const btnFull = document.getElementById('btnPantallaCompleta');
+    const contenido = document.getElementById('contenido');
+
+    if (!localStorage.getItem('pantallaCompletaActiva')) {
+      btnFull.style.display = 'block';
+    } else {
+      contenido.style.display = 'flex';
+      cargarEventos();
+      actualizarHora();
+      setInterval(actualizarHora, 30000);
+      setInterval(cargarEventos, 60000);
+    }
+
+    btnFull.addEventListener('click', async () => {
+      const body = document.documentElement;
+      if (body.requestFullscreen) {
+        await body.requestFullscreen();
+      } else if (body.webkitRequestFullscreen) {
+        await body.webkitRequestFullscreen();
+      }
+      localStorage.setItem('pantallaCompletaActiva', '1');
+      btnFull.style.display = 'none';
+      contenido.style.display = 'flex';
+      cargarEventos();
+      actualizarHora();
+      setInterval(actualizarHora, 30000);
+      setInterval(cargarEventos, 60000);
+    });
+  </script>
 </body>
 </html>
+
