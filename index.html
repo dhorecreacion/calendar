@@ -1,264 +1,538 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Capacitaciones en la Sala SUM</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <script src="https://kit.fontawesome.com/a2d9d6a6de.js" crossorigin="anonymous"></script>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100vh;
-      overflow: hidden;
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(to bottom right, #f0f2f5, #e6ebf1);
-      color: #1a3e72;
-      display: flex;
-      flex-direction: column;
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programación de Capacitaciones — Sala SUM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a2d9d6a6de.js" crossorigin="anonymous"></script>
+    <style>
+    :root{
+        --azul-900:#0b3c85; --azul-800:#1153b1; --azul-700:#1a73e8; --azul-100:#eaf3ff;
+        --dorado-600:#b89b1d; --gris-50:#f7f9fc; --gris-100:#eef2f7; --gris-400:#6b7a90; --texto:#12325a;
+        --verde:#1a9b57; --rojo:#d64545; --amarillo:#c79211; --badge-fg:#fff;
+
+        /* Gutters para aire en los bordes */
+        --gutter: clamp(16px, 4vw, 56px);
+        --gutterY: clamp(10px, 2.5vh, 24px);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{
+        font-family:'Inter',system-ui,Segoe UI,Roboto,Arial,Helvetica,sans-serif;
+        color:var(--texto);
+        background:linear-gradient(180deg,#f0f4fb, #e6ecf5);
+        overflow:hidden; display:flex;flex-direction:column;
     }
 
-    .contenido {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      padding: 2rem;
-      overflow-y: auto;
+    /* HEADER */
+    .header{
+        background:radial-gradient(120% 120% at 50% 0%, var(--azul-900) 0%, var(--azul-800) 55%, #10479d 100%);
+        color:#fff; padding:16px var(--gutter);
+        display:grid; grid-template-columns: 1fr auto auto; gap:14px; align-items:center;
+        box-shadow:0 8px 18px rgb(0 0 0 / 12%);
+    }
+    .brand{display:flex;align-items:center;gap:12px}
+    .brand i{font-size:28px}
+    .brand h1{margin:0;font-weight:800;font-size:24px;letter-spacing:.3px}
+    .subline{opacity:.9;font-size:13px;margin-top:2px}
+    .right{display:flex;align-items:center;gap:12px}
+    .clock{font-weight:700;font-size:16px;white-space:nowrap}
+    .conn-dot{width:10px;height:10px;border-radius:50%;box-shadow:0 0 0 4px rgb(255 255 255 / 15%)}
+    .ok{background:#2ecc71}
+    .fail{background:#e74c3c}
+
+    /* BANNER ERROR */
+    .alert{
+        display:none; background:#fff3f3; color:#b33232; border:1px solid #f4caca;
+        padding:10px 16px; font-size:14px;
     }
 
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
+    /* CONTROLES SUPERIORES */
+    .top-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .btn{
+        background:linear-gradient(180deg,#1976d2,#1562b4);
+        color:#fff;border:0;border-radius:10px;padding:8px 12px;font-weight:700;cursor:pointer;
+        box-shadow:0 4px 10px rgb(21 98 180 / 30%); font-size:13px; text-transform:uppercase;
+    }
+    .btn.outline{background:transparent;border:2px solid #1976d2;color:#1976d2}
+    .btn.active{outline:3px solid rgba(255,255,255,.3)}
+    .toggle{display:flex;align-items:center;gap:8px;font-size:13px;color:#e9f0ff}
+    .toggle input{transform:scale(1.2)}
+
+    /* WRAP */
+    .wrap{flex:1;display:flex;min-height:0;padding-top:4px;} /* un pelín de aire superior */
+
+    /* RAIL (eliminada) */
+    .rail{display:none !important;}
+
+    /* TABLA */
+    .tabla{
+        flex:1;display:grid;grid-template-rows:auto auto 1fr auto;gap:16px;
+        padding: var(--gutterY) var(--gutter);overflow:auto;
+    }
+    .tabla-head{
+        display:grid;grid-template-columns: 150px 130px 130px 1.1fr 1.1fr 150px;gap:10px;
+        align-items:center;color:#fff;font-weight:700;text-transform:uppercase;font-size:12px;letter-spacing:.6px
+    }
+    .pill{
+        background:linear-gradient(180deg,#1976d2,#1562b4);
+        padding:8px 10px;border-radius:10px;box-shadow:0 4px 10px rgb(21 98 180 / 30%);
+        text-align:center
     }
 
-    .header h1 {
-      font-size: 1.9rem;
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
+    /* KPIs */
+    .kpis{display:grid;grid-template-columns: repeat(3, minmax(160px,1fr));gap:10px}
+    .kpi{
+        background:#ffffff;border-radius:14px;padding:10px 12px;display:flex;align-items:center;gap:10px;
+        box-shadow:0 6px 18px rgb(11 60 133 / 8%);
+    }
+    .kpi i{font-size:18px;color:var(--azul-700)}
+    .kpi .big{font-size:22px;font-weight:800}
+    .kpi small{color:var(--gris-400)}
+
+    /* FILAS */
+    .rows{display:flex;flex-direction:column;gap:10px}
+    .row{
+        display:grid;grid-template-columns: 150px 130px 130px 1.1fr 1.1fr 150px;gap:10px;
+        background:#fff;border-radius:18px;padding:12px 12px 12px 12px;
+        box-shadow:0 6px 18px rgb(11 60 133 / 8%); align-items:stretch;animation:fadeIn .25s ease both
+    }
+    .cell{display:flex;align-items:center;padding:6px 10px;font-size:16px}
+    .cell .tag{font-weight:700}
+    .cell.small{font-size:15px;color:var(--gris-400)}
+    .lugar{
+        background:linear-gradient(180deg,#ccb233,#b89b1d);color:#fff;font-weight:800;letter-spacing:.3px;
+        border-top-left-radius:22px;border-bottom-left-radius:22px;justify-content:center;text-transform:uppercase
+    }
+    .row.destacado{background:linear-gradient(90deg,var(--azul-100),#fff)}
+    .row.destacado .lugar{filter:saturate(1.2)}
+
+    /* Título + meta (duración) */
+    .title-wrap{display:flex;flex-direction:column;gap:4px}
+    .title-wrap .meta{font-size:13px;color:var(--gris-400)}
+
+    /* Próximo (<=15 min) resaltado suave */
+    .row.proximo-soon{
+        box-shadow:0 0 0 3px rgba(26,115,232,.18), 0 6px 18px rgb(11 60 133 / 8%);
     }
 
-    .header h1 i {
-      font-size: 1.8rem;
-      color: #1a73e8;
+    .notas{display:flex;gap:8px;align-items:center}
+    .notas i{color:var(--azul-700)}
+    .notas [data-tip]{position:relative;cursor:default}
+    .notas [data-tip]:hover::after{
+        content:attr(data-tip);
+        position:absolute;left:0;top:140%;z-index:10;min-width:240px;
+        background:#1a2b42;color:#fff;padding:8px 10px;border-radius:8px;box-shadow:0 8px 18px rgba(0,0,0,.2);
+        font-size:13px; white-space:normal;
     }
 
-    .hora-actual {
-      font-size: 1rem;
-      color: #444;
-    }
+    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
-    .contenedor-eventos {
-      display: flex;
-      flex-direction: column;
-      gap: 1.2rem;
-      width: 100%;
+    /* ESTADO BADGE */
+    .estado{justify-content:center}
+    .badge{
+        display:inline-flex;align-items:center;gap:.5rem;padding:8px 12px;border-radius:999px;font-weight:800;letter-spacing:.3px;
+        color:var(--badge-fg);text-transform:uppercase;font-size:13px;box-shadow:0 6px 16px rgb(0 0 0 / 10%);
     }
+    .badge i{font-size:14px}
+    .badge.en-curso{background:linear-gradient(180deg,var(--verde),#157948)}
+    .badge.proximo{background:linear-gradient(180deg,var(--amarillo),#a6780f)}
+    .badge.finalizado{background:linear-gradient(180deg,var(--rojo),#b33232)}
+    .badge.cancelado{background:linear-gradient(180deg,#c0392b,#962d22)}
+    .badge.reprogramado{background:linear-gradient(180deg,#8e44ad,#6d3b9a)}
 
-    .evento-card {
-      background: white;
-      border-radius: 18px;
-      padding: 1.5rem 2rem;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.06);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      animation: fadeInUp 0.4s ease both;
+    /* FOOTER */
+    .footer{
+        display:flex;justify-content:space-between;align-items:center;
+        padding:12px var(--gutter);
+        color:#4d6a95;font-size:13px
     }
+    .footer .claim{font-weight:600}
 
-    .evento-card.destacado {
-      border-left: 5px solid #1a73e8;
-      background: linear-gradient(to right, #dff1ff, #eaf6ff);
+    /* FULLSCREEN FAB (también con gutter) */
+    #btnPantallaCompleta{
+        position:fixed; right:calc(var(--gutter) - 4px); bottom:var(--gutterY); z-index:9999;
+        background:linear-gradient(180deg,#1a73e8,#1257b6); color:#fff; border:0; border-radius:999px;
+        padding:12px 16px; font-size:14px; font-weight:800; cursor:pointer;
+        display:flex; align-items:center; gap:.5rem; box-shadow:0 12px 28px rgb(0 0 0 / 25%);
+        transition: opacity .2s ease, transform .2s ease;
     }
+    #btnPantallaCompleta:hover{ transform: translateY(-1px) }
+    #btnPantallaCompleta.oculto{ opacity:0; pointer-events:none; transform: scale(.98) }
+    .fs-hide-cursor { cursor: none; } /* ocultar cursor en FS después de 3s */
 
-    .evento-info {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
+    /* Scroll TV */
+    ::-webkit-scrollbar{height:10px;width:10px}
+    ::-webkit-scrollbar-thumb{background:#c6d6ee;border-radius:10px}
+    ::-webkit-scrollbar-track{background:transparent}
+
+    /* Responsive */
+    @media (max-width:1200px){
+        .tabla-head,.row{grid-template-columns: 120px 110px 110px 1fr 1fr 120px}
+        .brand h1{font-size:20px}
     }
+    </style>
+    </head>
+    <body>
 
-    .evento-icono {
-      font-size: 2rem;
-      color: #1a73e8;
-    }
+    <!-- FAB Pantalla Completa -->
+    <button id="btnPantallaCompleta" aria-label="Pantalla completa">
+    <i class="fa-solid fa-maximize"></i> Pantalla completa
+    </button>
 
-    .evento-detalles {
-      display: flex;
-      flex-direction: column;
-      gap: 0.3rem;
-    }
-
-    .evento-hora {
-      font-weight: 700;
-      font-size: 1.2rem;
-    }
-
-    .evento-titulo {
-      font-size: 1rem;
-      font-weight: 500;
-      color: #333;
-    }
-
-    .evento-footer {
-      text-align: right;
-      font-size: 0.95rem;
-      color: #444;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    .evento-footer i {
-      color: #1a73e8;
-    }
-
-    .mensaje-vacio {
-      text-align: center;
-      font-size: 1.2rem;
-      color: #999;
-      margin-top: 2rem;
-    }
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(12px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    #btnPantallaCompleta {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #1a73e8;
-      color: white;
-      border: none;
-      font-size: 1.2rem;
-      padding: 1rem 2rem;
-      border-radius: 12px;
-      cursor: pointer;
-      z-index: 9999;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-      transition: transform 0.3s ease;
-    }
-
-    #btnPantallaCompleta:hover {
-      transform: translate(-50%, -50%) scale(1.05);
-    }
-  </style>
-</head>
-<body>
-  <button id="btnPantallaCompleta" style="display:none;">
-    Ver en pantalla completa
-  </button>
-
-  <div class="contenido" id="contenido" style="display: none;">
-    <div class="header">
-      <h1><i class="fa-solid fa-calendar-days"></i> Capacitaciones en la Sala SUM</h1>
-      <div class="hora-actual" id="horaActual"></div>
+    <header class="header">
+    <div class="brand">
+        <i class="fa-solid fa-calendar-check"></i>
+        <div>
+        <h1>PROGRAMACIÓN DE CAPACITACIONES</h1>
+        <div class="subline">Sala SUM • <span id="subFecha">—</span></div>
+        </div>
     </div>
-    <div id="contenedorEventos" class="contenedor-eventos"></div>
-    <div id="mensajeVacio" class="mensaje-vacio" style="display:none;">
-      No hay capacitaciones programadas para este día.
-    </div>
-  </div>
 
-  <script>
+    <div class="top-controls">
+        <button class="btn" id="btnHoy">Hoy</button>
+        <button class="btn outline" id="btnManana">Mañana</button>
+        <label class="toggle">
+        <input type="checkbox" id="chkAutoRotar"> Auto-rotar día
+        </label>
+    </div>
+
+    <div class="right">
+        <div class="clock" id="reloj">—:—</div>
+        <span id="conn" class="conn-dot fail" title="Estado de conexión"></span>
+    </div>
+    </header>
+
+    <div class="alert" id="alertError"><strong>Error:</strong> No se pudieron cargar los eventos. Reintentando…</div>
+
+    <div class="wrap">
+    <!-- Rail eliminado -->
+    <main class="tabla" id="scrollArea">
+        <div class="tabla-head">
+        <div class="pill">Lugar</div><div class="pill">Inicio</div><div class="pill">Fin</div>
+        <div class="pill">Actividad / Título</div><div class="pill">Notas / Indicaciones</div><div class="pill">Estado</div>
+        </div>
+
+        <div class="kpis" id="kpis">
+        <div class="kpi"><i class="fa-solid fa-list-check"></i><div><div class="big" id="kpiTotal">0</div><small>Eventos del día</small></div></div>
+        <div class="kpi"><i class="fa-solid fa-play"></i><div><div class="big" id="kpiEnCurso">0</div><small>En curso</small></div></div>
+        <div class="kpi"><i class="fa-regular fa-clock"></i><div><div class="big" id="kpiProx">—</div><small>Próximo en</small></div></div>
+        </div>
+
+        <div id="rows" class="rows"></div>
+        <div id="vacio" class="footnote" style="display:none">No hay capacitaciones programadas para este día.</div>
+        <div class="footnote"><strong>Importante:</strong> La pantalla se actualiza automáticamente cada minuto. Los eventos en curso aparecen resaltados.</div>
+    </main>
+    </div>
+
+    <footer class="footer">
+    <div class="claim">Juntos hacemos que las cosas pasen</div>
+    <div>Vista TV • Actualiza con F5</div>
+    </footer>
+
+    <script>
+    // === CONFIG ===
     const URL_CALENDARIO = 'https://script.google.com/macros/s/AKfycby2sPOBB6DP6aZy6Z6t6Auy4aFBUZxAlzAw1CSXsWnVS0zc67KLNSrLkDKdCdkdlzI/exec';
+    const AUTO_ROTAR_MIN = 2;
+    const SCROLL_SPEED = 1;
+    const SCROLL_TICK_MS = 40;
+    const PROXIMO_SOON_MIN = 15; // resaltado cuando faltan <= 15 min
 
-    function actualizarHora() {
-      const ahora = new Date();
-      const fecha = ahora.toLocaleDateString('es-PE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-      const hora = ahora.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
-      document.getElementById('horaActual').textContent = `${fecha} | ${hora}`;
+    // === HELPERS ===
+    function fmtFechaCabecera(d){ return d.toLocaleDateString('es-PE',{weekday:'long', year:'numeric', month:'long', day:'numeric'}); }
+    function fmtHora(d){ return new Date(d).toLocaleTimeString('es-PE',{hour:'2-digit', minute:'2-digit'}); }
+
+    function diffMins(a,b){ return Math.round((a - b)/60000); }
+    function formatHM(mins){
+        if(mins <= 0) return '<1 min';
+        if(mins < 60) return `${mins} min`;
+        const h = Math.floor(mins/60), m = mins%60;
+        return m>0 ? `${h} h ${m} min` : `${h} h`;
     }
 
-    function formatoHora(fecha) {
-      return new Date(fecha).toLocaleTimeString('es-PE', {
-        hour: '2-digit', minute: '2-digit'
-      });
+    // === ESTADO DE EVENTO ===
+    function estadoDesde(ini, fin, ahora = new Date(), forzado){
+        if(forzado === 'cancelado') return { clase:'cancelado', icon:'fa-solid fa-xmark', texto:'Cancelado' };
+        if(forzado === 'reprogramado') return { clase:'reprogramado', icon:'fa-solid fa-arrows-rotate', texto:'Reprogramado' };
+
+        if(ahora < ini){
+        const mins = Math.max(0, diffMins(ini, ahora));
+        return { clase:'proximo', icon:'fa-regular fa-clock', texto:`Próximo en ${formatHM(mins)}`, minsToStart: mins };
+        }
+        if(ahora <= fin){
+        return { clase:'en-curso', icon:'fa-solid fa-play', texto:'En curso' };
+        }
+        return { clase:'finalizado', icon:'fa-solid fa-circle-check', texto:'Finalizado' };
     }
 
-    async function cargarEventos() {
-      const fecha = new Date().toISOString().split("T")[0];
-      const res = await fetch(`${URL_CALENDARIO}?fecha=${fecha}`);
-      const eventos = await res.json();
-
-      const contenedor = document.getElementById('contenedorEventos');
-      const mensaje = document.getElementById('mensajeVacio');
-      contenedor.innerHTML = '';
-      mensaje.style.display = 'none';
-
-      if (!eventos.length) {
-        mensaje.style.display = 'block';
-        return;
-      }
-
-      const ahora = new Date();
-
-      eventos
-        .sort((a, b) => new Date(a.inicio) - new Date(b.inicio))
-        .forEach(ev => {
-          const inicio = new Date(ev.inicio);
-          const fin = new Date(ev.fin);
-          const esActual = ahora >= inicio && ahora <= fin;
-
-          const card = document.createElement('div');
-          card.className = 'evento-card' + (esActual ? ' destacado' : '');
-
-          card.innerHTML = `
-            <div class="evento-info">
-              <i class="fa-solid fa-calendar-check evento-icono"></i>
-              <div class="evento-detalles">
-                <div class="evento-hora">${formatoHora(inicio)} – ${formatoHora(fin)}</div>
-                <div class="evento-titulo">${ev.titulo}</div>
-              </div>
-            </div>
-            <div class="evento-footer"><i class="fa-solid fa-location-dot"></i> ${ev.lugar || 'SUM'}</div>
-          `;
-
-          contenedor.appendChild(card);
-        });
-    }
-
-    // Pantalla completa
+    // === DOM refs
+    const reloj = document.getElementById('reloj');
+    const subFecha = document.getElementById('subFecha');
+    const rows = document.getElementById('rows');
+    const vacio = document.getElementById('vacio');
+    const conn = document.getElementById('conn');
+    const alertError = document.getElementById('alertError');
+    const btnHoy = document.getElementById('btnHoy');
+    const btnManana = document.getElementById('btnManana');
+    const chkAutoRotar = document.getElementById('chkAutoRotar');
+    const kpiTotal = document.getElementById('kpiTotal');
+    const kpiEnCurso = document.getElementById('kpiEnCurso');
+    const kpiProx = document.getElementById('kpiProx');
+    const scrollArea = document.getElementById('scrollArea');
     const btnFull = document.getElementById('btnPantallaCompleta');
-    const contenido = document.getElementById('contenido');
 
-    if (!localStorage.getItem('pantallaCompletaActiva')) {
-      btnFull.style.display = 'block';
-    } else {
-      contenido.style.display = 'flex';
-      cargarEventos();
-      actualizarHora();
-      setInterval(actualizarHora, 30000);
-      setInterval(cargarEventos, 60000);
+    // === ESTADO GLOBAL
+    let fechaSeleccionada = new Date(); // por defecto hoy
+    let eventosCache = [];
+    let scrollTimer = null;
+    let autoRotarTimer = null;
+    let fetchRetry = 0;
+
+    // Persistencia
+    const savedAuto = localStorage.getItem('autoRotar') === '1';
+    chkAutoRotar.checked = savedAuto;
+
+    // === TIEMPO EN UI ===
+    function pintarTiempo(){
+        const ahora = new Date();
+        reloj.textContent = ahora.toLocaleTimeString('es-PE',{hour:'2-digit', minute:'2-digit'});
+        subFecha.textContent = fmtFechaCabecera(fechaSeleccionada);
     }
 
-    btnFull.addEventListener('click', async () => {
-      const body = document.documentElement;
-      if (body.requestFullscreen) {
-        await body.requestFullscreen();
-      } else if (body.webkitRequestFullscreen) {
-        await body.webkitRequestFullscreen();
-      }
-      localStorage.setItem('pantallaCompletaActiva', '1');
-      btnFull.style.display = 'none';
-      contenido.style.display = 'flex';
-      cargarEventos();
-      actualizarHora();
-      setInterval(actualizarHora, 30000);
-      setInterval(cargarEventos, 60000);
-    });
-  </script>
-</body>
-</html>
+    // === FETCH ===
+    async function cargarEventos(dia){
+        const f = new Date(dia.getFullYear(), dia.getMonth(), dia.getDate());
+        const fechaISO = f.toISOString().split('T')[0];
+
+        try{
+        const res = await fetch(`${URL_CALENDARIO}?fecha=${fechaISO}`, {cache:'no-store'});
+        if(!res.ok) throw new Error(res.status);
+        const data = await res.json();
+        eventosCache = Array.isArray(data) ? data : [];
+        conn.classList.remove('fail'); conn.classList.add('ok');
+        alertError.style.display = 'none';
+        fetchRetry = 0;
+        pintarTabla(eventosCache);
+        }catch(e){
+        conn.classList.remove('ok'); conn.classList.add('fail');
+        alertError.style.display = 'block';
+        fetchRetry = Math.min(fetchRetry+1, 5);
+        const wait = 1500 * fetchRetry;
+        setTimeout(()=>cargarEventos(fechaSeleccionada), wait);
+        }
+    }
+
+    // === KPIs ===
+    function pintarKPIs(eventos){
+        const ahora = new Date();
+        const total = eventos.length;
+        const enCurso = eventos.filter(ev => {
+        const ini = new Date(ev.inicio), fin = new Date(ev.fin);
+        return ahora>=ini && ahora<=fin;
+        }).length;
+
+        const futuros = eventos.map(ev => new Date(ev.inicio)).filter(d => d > ahora).sort((a,b)=>a-b);
+
+        let proxTxt = '—';
+        let proxTitle = '';
+        if(futuros.length){
+        const mins = Math.max(0, diffMins(futuros[0], ahora));
+        proxTxt = formatHM(mins);
+        proxTitle = `Comienza a las ${fmtHora(futuros[0])}`;
+        }
+        kpiTotal.textContent = total;
+        kpiEnCurso.textContent = enCurso;
+        kpiProx.innerHTML = proxTxt;
+        kpiProx.setAttribute('title', proxTitle || '');
+    }
+
+    // === RENDER ===
+    function pintarTabla(eventos){
+        rows.innerHTML = '';
+        if(!eventos || !eventos.length){
+        vacio.style.display = 'block';
+        pintarKPIs([]);
+        return;
+        }
+        vacio.style.display = 'none';
+
+        const ahora = new Date();
+        let enCursoAnchor = null;
+
+        eventos.slice().sort((a,b)=>new Date(a.inicio)-new Date(b.inicio)).forEach(ev=>{
+        const ini = new Date(ev.inicio);
+        const fin = new Date(ev.fin);
+        const forced = (ev.estado||'').toString().toLowerCase(); // 'cancelado' | 'reprogramado' | ''
+        const est = estadoDesde(ini, fin, ahora, forced);
+
+        // duración
+        const durMin = Math.max(0, diffMins(fin, ini));
+        const durTxt = durMin ? formatHM(durMin).replace('Próximo en ','') : '—';
+
+        const row = document.createElement('div');
+        const destacado = est.clase === 'en-curso';
+        row.className = 'row' + (destacado ? ' destacado' : '');
+        if(est.clase === 'proximo' && est.minsToStart <= PROXIMO_SOON_MIN){
+            row.classList.add('proximo-soon');
+        }
+
+        const notas = (ev.descripcion||'—').toString();
+        const notaShort = notas.slice(0,220);
+
+        row.innerHTML = `
+            <div class="cell lugar">${(ev.lugar||'SUM').toUpperCase()}</div>
+            <div class="cell"><span class="tag">${fmtHora(ini)}</span></div>
+            <div class="cell">${fmtHora(fin)}</div>
+            <div class="cell">
+            <div class="title-wrap">
+                <div class="titulo">${ev.titulo||'—'}</div>
+                <div class="meta">Duración: ${durTxt}</div>
+            </div>
+            </div>
+            <div class="cell small">
+            <div class="notas">
+                <i class="fa-solid fa-circle-info"></i>
+                <span>${notaShort}</span>
+                <span data-tip="${escapeHtml(notas)}"></span>
+            </div>
+            </div>
+            <div class="cell estado">
+            <span class="badge ${est.clase}" aria-label="Estado: ${est.texto}">
+                <i class="${est.icon}"></i> ${est.texto}
+            </span>
+            </div>
+        `;
+        rows.appendChild(row);
+        if(destacado && !enCursoAnchor) enCursoAnchor = row;
+        });
+
+        pintarKPIs(eventos);
+
+        if(enCursoAnchor){
+        enCursoAnchor.scrollIntoView({behavior:'smooth', block:'center'});
+        } else {
+        rows.firstElementChild?.scrollIntoView({behavior:'smooth', block:'start'});
+        }
+
+        setupAutoScroll();
+    }
+
+    // === AUTOSCROLL TV ===
+    function setupAutoScroll(){
+        if(scrollTimer){ clearInterval(scrollTimer); scrollTimer=null; }
+        const el = document.getElementById('scrollArea');
+        if(el.scrollHeight <= el.clientHeight + 10) return;
+        let dir = 1;
+        scrollTimer = setInterval(()=>{
+        el.scrollTop += SCROLL_SPEED*dir;
+        const bottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 2;
+        const top = el.scrollTop <= 0;
+        if(bottom) dir = -1;
+        if(top) dir = 1;
+        }, SCROLL_TICK_MS);
+
+        const pause = ()=>{ if(scrollTimer){clearInterval(scrollTimer); scrollTimer=null;} };
+        const resumeOnce = ()=>{ setupAutoScroll(); el.removeEventListener('mouseleave', resumeOnce); };
+        el.addEventListener('mouseenter', pause);
+        el.addEventListener('mouseleave', resumeOnce);
+    }
+
+    // Tooltip seguro
+    function escapeHtml(s){ return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+    // === FULLSCREEN ROBUSTO + WAKE LOCK ===
+    let hideCursorTimer = null;
+    let wakeLock = null;
+
+    function isFullscreen(){ return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+
+    async function activarFS(){
+        const el = document.documentElement;
+        try{
+        if(el.requestFullscreen) await el.requestFullscreen();
+        else if(el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
+        btnFull.classList.add('oculto');
+        setTimeout(()=>btnFull.style.display='none', 200);
+        }catch(e){ /* silencioso */ }
+    }
+    btnFull.addEventListener('click', activarFS);
+
+    function onFSChange(){
+        if(isFullscreen()){
+        btnFull.classList.add('oculto');
+        setTimeout(()=>btnFull.style.display='none', 200);
+        startHideCursorLoop();
+        acquireWakeLock();
+        }else{
+        btnFull.style.display='flex';
+        requestAnimationFrame(()=>btnFull.classList.remove('oculto'));
+        stopHideCursorLoop();
+        releaseWakeLock();
+        }
+    }
+    document.addEventListener('fullscreenchange', onFSChange);
+    document.addEventListener('webkitfullscreenchange', onFSChange);
+
+    // Ocultar cursor tras 3s sin movimiento cuando está en FS
+    const hideCursorEnable = ()=>{
+        document.body.classList.remove('fs-hide-cursor');
+        clearTimeout(hideCursorTimer);
+        hideCursorTimer = setTimeout(()=>{ if(isFullscreen()) document.body.classList.add('fs-hide-cursor'); }, 3000);
+    };
+    function startHideCursorLoop(){ window.addEventListener('mousemove', hideCursorEnable); window.addEventListener('keydown', hideCursorEnable); hideCursorEnable(); }
+    function stopHideCursorLoop(){ window.removeEventListener('mousemove', hideCursorEnable); window.removeEventListener('keydown', hideCursorEnable); clearTimeout(hideCursorTimer); document.body.classList.remove('fs-hide-cursor'); }
+
+    async function acquireWakeLock(){
+        try{ if('wakeLock' in navigator){ wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', ()=>{}); } }catch(e){}
+    }
+    function releaseWakeLock(){ try{ wakeLock?.release(); wakeLock=null; }catch(e){} }
+    document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState === 'visible' && isFullscreen()){ acquireWakeLock(); } else { releaseWakeLock(); } });
+
+    // === DÍA: HOY / MAÑANA + AUTO-ROTAR ===
+    function setDia(offset){
+        const base = new Date();
+        base.setHours(0,0,0,0);
+        base.setDate(base.getDate()+offset);
+        fechaSeleccionada = base;
+        btnHoy.classList.toggle('active', offset===0);
+        btnManana.classList.toggle('active', offset===1);
+        pintarTiempo();
+        cargarEventos(fechaSeleccionada);
+        localStorage.setItem('diaOffset', String(offset));
+    }
+    btnHoy.onclick = ()=>setDia(0);
+    btnManana.onclick = ()=>setDia(1);
+
+    function initDia(){
+        const saved = Number(localStorage.getItem('diaOffset')||'0');
+        setDia(saved===1?1:0);
+    }
+
+    function setupAutoRotar(){
+        if(autoRotarTimer){ clearInterval(autoRotarTimer); autoRotarTimer=null; }
+        if(!chkAutoRotar.checked) return;
+        autoRotarTimer = setInterval(()=>{
+        const nowOff = btnHoy.classList.contains('active') ? 0 : 1;
+        const next = nowOff===0 ? 1 : 0;
+        setDia(next);
+        }, AUTO_ROTAR_MIN*60*1000);
+    }
+    chkAutoRotar.addEventListener('change', ()=>{ localStorage.setItem('autoRotar', chkAutoRotar.checked?'1':'0'); setupAutoRotar(); });
+
+    // === LOOP ===
+    function start(){
+        initDia();
+        chkAutoRotar.checked = savedAuto;
+        setupAutoRotar();
+
+        pintarTiempo();
+        setInterval(pintarTiempo, 30_000);
+
+        setInterval(()=>cargarEventos(fechaSeleccionada), 60_000);
+    }
+    start();
+    </script>
+    </body>
+    </html>
 
