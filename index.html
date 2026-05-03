@@ -457,20 +457,24 @@
     }
 
     // === AUTOSCROLL TV ===
+    const PX_POR_MS = SCROLL_SPEED / SCROLL_TICK_MS;
     function setupAutoScroll(){
-        if(scrollTimer){ clearInterval(scrollTimer); scrollTimer=null; }
+        if(scrollTimer){ cancelAnimationFrame(scrollTimer); scrollTimer=null; }
         const el = document.getElementById('scrollArea');
         if(el.scrollHeight <= el.clientHeight + 10) return;
-        let dir = 1;
-        scrollTimer = setInterval(()=>{
-        el.scrollTop += SCROLL_SPEED*dir;
-        const bottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 2;
-        const top = el.scrollTop <= 0;
-        if(bottom) dir = -1;
-        if(top) dir = 1;
-        }, SCROLL_TICK_MS);
+        let dir = 1, prev = null;
+        function tick(ts){
+            if(prev !== null){
+                el.scrollTop += PX_POR_MS * (ts - prev) * dir;
+                if(el.scrollTop + el.clientHeight >= el.scrollHeight - 2) dir = -1;
+                if(el.scrollTop <= 0) dir = 1;
+            }
+            prev = ts;
+            scrollTimer = requestAnimationFrame(tick);
+        }
+        scrollTimer = requestAnimationFrame(tick);
 
-        const pause = ()=>{ if(scrollTimer){clearInterval(scrollTimer); scrollTimer=null;} };
+        const pause = ()=>{ if(scrollTimer){ cancelAnimationFrame(scrollTimer); scrollTimer=null; } };
         const resumeOnce = ()=>{ setupAutoScroll(); el.removeEventListener('mouseleave', resumeOnce); };
         el.addEventListener('mouseenter', pause);
         el.addEventListener('mouseleave', resumeOnce);
@@ -565,7 +569,7 @@
         setupAutoRotar();
 
         pintarTiempo();
-        setInterval(pintarTiempo, 30_000);
+        setInterval(pintarTiempo, 60_000);
 
         setInterval(()=>cargarEventos(fechaSeleccionada), 60_000);
     }
@@ -660,7 +664,6 @@
                 mostrarSlide(next);
             } else {
                 cerrarSlideshow();
-                cargarImagenesDrive(); // refrescar lista para el próximo ciclo
             }
         }, SLIDE_DURACION_SEG * 1000);
     }
@@ -668,6 +671,7 @@
     async function iniciarCartelera(){
         await cargarImagenesDrive();
         programarProximoCiclo();
+        setInterval(cargarImagenesDrive, 10 * 60 * 1000); // refresca lista cada 10 min
     }
     iniciarCartelera();
     </script>
