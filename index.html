@@ -571,17 +571,16 @@
         pintarTiempo();
         setInterval(pintarTiempo, 60_000);
 
-        setInterval(()=>cargarEventos(fechaSeleccionada), 60_000);
+        setInterval(()=>cargarEventos(fechaSeleccionada), 30_000);
     }
     start();
 
     // ============================================================
     // CARTELERA — imágenes rotativas desde Google Drive
     // ============================================================
-    const DRIVE_API_KEY           = 'AIzaSyBgcO5NGMUpsSG3ztS038HmHyM4lWiwN3A';
-    const DRIVE_FOLDER_ID         = '1RUBQglIATdy5l4e40QNXptMNUcoR0FFC';
-    const SLIDE_DURACION_SEG      = 15;   // segundos por imagen
-    const CALENDARIO_DURACION_SEG = 7;  // segundos mostrando calendario antes de rotar
+    const URL_IMAGENES            = 'https://script.google.com/macros/s/AKfycbyE4lvsBmH3zycQ9L3OGDF5tUgmPHEoQxjSTfFlSwJsgY3JkLPwVtuS_2eW2I8R3iCE/exec';
+    const SLIDE_DURACION_SEG      = 15;  // segundos por imagen
+    const CALENDARIO_DURACION_SEG = 7;   // segundos mostrando calendario antes de rotar
 
     let imagenesCartelera = [];
     let slideIdx          = 0;
@@ -596,16 +595,13 @@
     const slideBarEl     = document.getElementById('slideBar');
 
     async function cargarImagenesDrive(){
-        if(!DRIVE_API_KEY || DRIVE_API_KEY.includes('TU_')) return;
         try{
-            const q   = encodeURIComponent(`'${DRIVE_FOLDER_ID}' in parents and mimeType contains 'image/' and trashed = false`);
-            const url = `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&orderBy=name&pageSize=100&key=${DRIVE_API_KEY}`;
-            const res = await fetch(url);
+            const res = await fetch(URL_IMAGENES, {cache:'no-store'});
             if(!res.ok) throw new Error(res.status);
-            const { files = [] } = await res.json();
-            imagenesCartelera = files.map(f => `https://drive.google.com/thumbnail?id=${f.id}&sz=w1920`);
+            const data = await res.json();
+            imagenesCartelera = Array.isArray(data) ? data.map(f => f.url) : [];
         }catch(e){
-            console.warn('[Cartelera] Error cargando imágenes Drive:', e);
+            console.warn('[Cartelera] Error cargando imágenes:', e);
             imagenesCartelera = [];
         }
     }
@@ -620,6 +616,7 @@
     function cerrarSlideshow(){
         slideshowEl.classList.remove('visible');
         clearTimeout(timerSlide);
+        cargarEventos(fechaSeleccionada); // refresca eventos al volver al calendario
         programarProximoCiclo();
     }
 
