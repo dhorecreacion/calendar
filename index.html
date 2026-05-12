@@ -44,12 +44,14 @@
 
     /* BANNER ERROR */
     .alert{
-        display:none; background:#fff3f3; color:#b33232; border:1px solid #f4caca;
-        padding:10px 16px; font-size:14px;
+        display:none; background:#c0392b; color:#fff;
+        padding:14px 20px; font-size:16px; font-weight:700; text-align:center;
+        letter-spacing:.3px;
     }
 
-    /* CONTROLES SUPERIORES */
-    .top-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    /* CONTROLES SUPERIORES — semitransparentes en TV, visibles al hover */
+    .top-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;opacity:.15;transition:opacity .3s}
+    .top-controls:hover{opacity:1}
     .btn{
         background:linear-gradient(180deg,#1976d2,#1562b4);
         color:#fff;border:0;border-radius:10px;padding:8px 12px;font-weight:700;cursor:pointer;
@@ -59,6 +61,16 @@
     .btn.active{outline:3px solid rgba(255,255,255,.3)}
     .toggle{display:flex;align-items:center;gap:8px;font-size:13px;color:#e9f0ff}
     .toggle input{transform:scale(1.2)}
+
+    /* OVERLAY FULLSCREEN PROMPT */
+    .fs-prompt{
+        position:fixed;inset:0;z-index:2000;background:rgba(11,60,133,.92);
+        display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+        color:#fff;cursor:pointer;
+    }
+    .fs-prompt i{font-size:52px;opacity:.9}
+    .fs-prompt p{font-size:22px;font-weight:700;margin:0;letter-spacing:.3px}
+    .fs-prompt small{opacity:.7;font-size:15px}
 
     /* WRAP */
     .wrap{flex:1;display:flex;min-height:0;padding-top:4px;} /* un pelín de aire superior */
@@ -98,9 +110,9 @@
         background:#fff;border-radius:18px;padding:12px 12px 12px 12px;
         box-shadow:0 6px 18px rgb(11 60 133 / 8%); align-items:stretch;animation:fadeIn .25s ease both
     }
-    .cell{display:flex;align-items:center;padding:6px 10px;font-size:16px}
+    .cell{display:flex;align-items:center;padding:6px 10px;font-size:18px}
     .cell .tag{font-weight:700}
-    .cell.small{font-size:15px;color:var(--gris-400)}
+    .cell.small{font-size:16px;color:var(--gris-400)}
     .lugar{
         background:linear-gradient(180deg,#ccb233,#b89b1d);color:#fff;font-weight:800;letter-spacing:.3px;
         border-top-left-radius:22px;border-bottom-left-radius:22px;justify-content:center;text-transform:uppercase
@@ -203,6 +215,13 @@
     </style>
     </head>
     <body>
+
+    <!-- PROMPT PANTALLA COMPLETA -->
+    <div id="fsPrompt" class="fs-prompt">
+        <i class="fa-solid fa-tv"></i>
+        <p>Toca para activar pantalla completa</p>
+        <small>Vista TV — Sala SUM</small>
+    </div>
 
     <!-- CARTELERA SLIDESHOW -->
     <div id="slideshow" class="slideshow" aria-hidden="true" aria-label="Cartelera de imágenes">
@@ -335,6 +354,13 @@
     function pintarTiempo(){
         const ahora = new Date();
         reloj.textContent = ahora.toLocaleTimeString('es-PE',{hour:'2-digit', minute:'2-digit'});
+
+        // Si "Hoy" está activo y cambió el día (TV dejada encendida de un día para otro)
+        if(btnHoy.classList.contains('active')){
+            const hoyStr = ahora.toDateString();
+            if(hoyStr !== fechaSeleccionada.toDateString()) setDia(0);
+        }
+
         subFecha.textContent = fmtFechaCabecera(fechaSeleccionada);
     }
 
@@ -642,7 +668,13 @@
             siguiente.classList.add('encima');
             actual.classList.remove('encima');
             imgActivaCartel = imgActivaCartel === 'A' ? 'B' : 'A';
-            this.onload = null;
+            this.onload = null; this.onerror = null;
+        };
+        siguiente.onerror = async function(){
+            this.onload = null; this.onerror = null;
+            await cargarImagenesDrive();
+            if(imagenesCartelera.length === 0){ cerrarSlideshow(); return; }
+            mostrarSlide(idx < imagenesCartelera.length ? idx : 0);
         };
         siguiente.src = urlImg;
 
@@ -660,7 +692,7 @@
             if(next < imagenesCartelera.length){
                 mostrarSlide(next);
             } else {
-                cerrarSlideshow();
+                cargarImagenesDrive().then(()=> cerrarSlideshow());
             }
         }, SLIDE_DURACION_SEG * 1000);
     }
@@ -668,9 +700,31 @@
     async function iniciarCartelera(){
         await cargarImagenesDrive();
         programarProximoCiclo();
-        setInterval(cargarImagenesDrive, 10 * 60 * 1000); // refresca lista cada 10 min
+        setInterval(async ()=>{
+            await cargarImagenesDrive();
+            // Si hay imágenes y el ciclo está completamente detenido, reactivarlo
+            const cicloPausado = !slideshowEl.classList.contains('visible') && !timerCalendario && !timerSlide;
+            if(imagenesCartelera.length > 0 && cicloPausado) programarProximoCiclo();
+        }, 10 * 60 * 1000);
     }
     iniciarCartelera();
+
+    // === RECARGA DIARIA A LAS 6:35am (5 min después de que prende la TV) ===
+    function programarReloadDiario(){
+        const ahora = new Date();
+        const recarga = new Date(ahora);
+        recarga.setHours(6, 35, 0, 0);
+        if(ahora >= recarga) recarga.setDate(recarga.getDate() + 1);
+        setTimeout(()=> location.reload(), recarga - ahora);
+    }
+    programarReloadDiario();
+
+    // === FULLSCREEN AL PRIMER TOQUE ===
+    const fsPrompt = document.getElementById('fsPrompt');
+    fsPrompt.addEventListener('click', async ()=>{
+        await activarFS();
+        fsPrompt.style.display = 'none';
+    });
     </script>
     </body>
     </html>
